@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentify Code Coverage</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      padding: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      color: #8b949e;
+      font-size: 0.875rem;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 1rem;
+      margin-bottom: 16px;
+      color: #e6edf3;
+    }
+    .chart-container {
+      position: relative;
+      height: 350px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      color: #8b949e;
+      margin-top: 2px;
+    }
+    .legend-toggle {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .legend-toggle button {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    .legend-toggle button.active {
+      border-color: #58a6ff;
+      background: #1f2937;
+    }
+    .loading {
+      text-align: center;
+      padding: 60px 0;
+      color: #8b949e;
+    }
+  </style>
+</head>
+<body>
+  <h1>Agentify Code Coverage</h1>
+  <p class="subtitle">Time series coverage data from <a href="https://github.com/jonparker/agentify" style="color:#58a6ff;text-decoration:none;">jonparker/agentify</a></p>
+
+  <div class="stats" id="stats">
+    <div class="loading">Loading...</div>
+  </div>
+
+  <div class="card">
+    <h2>Overall Coverage Over Time</h2>
+    <div class="chart-container">
+      <canvas id="totalChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Coverage by Directory</h2>
+    <div class="legend-toggle" id="dirToggle"></div>
+    <div class="chart-container">
+      <canvas id="dirChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const COLORS = {
+      lines:      '#3fb950',
+      statements: '#58a6ff',
+      branches:   '#d2a8ff',
+      functions:  '#f0883e',
+    };
+
+    const DIR_COLORS = [
+      '#3fb950', '#58a6ff', '#d2a8ff', '#f0883e', '#f778ba',
+      '#79c0ff', '#7ee787', '#ffa657', '#ff7b72', '#d29922',
+    ];
+
+    function pctColor(v) {
+      if (v >= 90) return '#3fb950';
+      if (v >= 75) return '#d29922';
+      return '#f85149';
+    }
+
+    async function init() {
+      const res = await fetch('data/history.json');
+      const history = await res.json();
+
+      if (!history.length) {
+        document.getElementById('stats').innerHTML = '<div class="loading">No data yet.</div>';
+        return;
+      }
+
+      const latest = history[history.length - 1];
+
+      // Stats cards
+      const metrics = ['lines', 'statements', 'branches', 'functions'];
+      document.getElementById('stats').innerHTML = metrics.map(m =>
+        `<div class="stat">
+          <div class="stat-value" style="color:${pctColor(latest.total[m])}">${latest.total[m]}%</div>
+          <div class="stat-label">${m.charAt(0).toUpperCase() + m.slice(1)}</div>
+        </div>`
+      ).join('');
+
+      // Total coverage chart
+      const timestamps = history.map(h => h.timestamp);
+      const totalDatasets = metrics.map(m => ({
+        label: m.charAt(0).toUpperCase() + m.slice(1),
+        data: history.map(h => h.total[m]),
+        borderColor: COLORS[m],
+        backgroundColor: COLORS[m] + '22',
+        tension: 0.3,
+        pointRadius: history.length > 30 ? 0 : 3,
+        borderWidth: 2,
+      }));
+
+      new Chart(document.getElementById('totalChart'), {
+        type: 'line',
+        data: { labels: timestamps, datasets: totalDatasets },
+        options: chartOptions('Coverage %'),
+      });
+
+      // Directory chart (using statements as the metric)
+      const allDirs = [...new Set(history.flatMap(h => Object.keys(h.directories || {})))].sort();
+      const dirDatasets = allDirs.map((dir, i) => ({
+        label: dir,
+        data: history.map(h => (h.directories && h.directories[dir]) ? h.directories[dir].statements : null),
+        borderColor: DIR_COLORS[i % DIR_COLORS.length],
+        backgroundColor: DIR_COLORS[i % DIR_COLORS.length] + '22',
+        tension: 0.3,
+        pointRadius: history.length > 30 ? 0 : 3,
+        borderWidth: 2,
+        spanGaps: true,
+      }));
+
+      const dirChart = new Chart(document.getElementById('dirChart'), {
+        type: 'line',
+        data: { labels: timestamps, datasets: dirDatasets },
+        options: chartOptions('Statements %'),
+      });
+
+      // Directory toggle buttons
+      const toggle = document.getElementById('dirToggle');
+      allDirs.forEach((dir, i) => {
+        const btn = document.createElement('button');
+        btn.textContent = dir;
+        btn.classList.add('active');
+        btn.style.borderLeftColor = DIR_COLORS[i % DIR_COLORS.length];
+        btn.style.borderLeftWidth = '3px';
+        btn.addEventListener('click', () => {
+          const meta = dirChart.getDatasetMeta(i);
+          meta.hidden = !meta.hidden;
+          btn.classList.toggle('active');
+          dirChart.update();
+        });
+        toggle.appendChild(btn);
+      });
+    }
+
+    function chartOptions(yLabel) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          x: {
+            type: 'time',
+            time: { unit: 'day', tooltipFormat: 'PPp' },
+            grid: { color: '#21262d' },
+            ticks: { color: '#8b949e' },
+          },
+          y: {
+            min: 0,
+            max: 100,
+            grid: { color: '#21262d' },
+            ticks: { color: '#8b949e', callback: v => v + '%' },
+            title: { display: true, text: yLabel, color: '#8b949e' },
+          },
+        },
+        plugins: {
+          legend: { labels: { color: '#c9d1d9' } },
+          tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}%` } },
+        },
+      };
+    }
+
+    init();
+  </script>
+</body>
+</html>
