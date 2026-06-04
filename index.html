@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agentify Code Coverage</title>
+  <title>Agentify Metrics</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
   <style>
@@ -87,30 +87,79 @@
       padding: 60px 0;
       color: #8b949e;
     }
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid #30363d;
+      margin-bottom: 24px;
+    }
+    .tab-bar button {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #8b949e;
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 8px 20px;
+      margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-bar button:hover { color: #c9d1d9; }
+    .tab-bar button.active {
+      border-bottom-color: #58a6ff;
+      color: #e6edf3;
+      font-weight: 600;
+    }
+    .section { display: none; }
+    .section.active { display: block; }
+    .no-data { text-align: center; padding: 60px 0; color: #8b949e; font-size: 0.95rem; }
   </style>
 </head>
 <body>
-  <h1>Agentify Code Coverage</h1>
-  <p class="subtitle">Time series coverage data from <a href="https://github.com/jonparker/agentify" style="color:#58a6ff;text-decoration:none;">jonparker/agentify</a></p>
+  <h1>Agentify Metrics</h1>
+  <p class="subtitle">Time series metrics from <a href="https://github.com/jonparker/agentify" style="color:#58a6ff;text-decoration:none;">jonparker/agentify</a></p>
 
-  <div class="stats" id="stats">
-    <div class="loading">Loading...</div>
-  </div>
+  <nav class="tab-bar">
+    <button id="tab-coverage" class="active" onclick="switchTab('coverage')">Coverage</button>
+    <button id="tab-complexity" onclick="switchTab('complexity')">Complexity</button>
+  </nav>
 
-  <div class="card">
-    <h2>Overall Coverage Over Time</h2>
-    <div class="chart-container">
-      <canvas id="totalChart"></canvas>
+  <section id="section-coverage" class="section active">
+    <div class="stats" id="stats">
+      <div class="loading">Loading...</div>
     </div>
-  </div>
-
-  <div class="card">
-    <h2>Coverage by Directory</h2>
-    <div class="legend-toggle" id="dirToggle"></div>
-    <div class="chart-container">
-      <canvas id="dirChart"></canvas>
+    <div class="card">
+      <h2>Overall Coverage Over Time</h2>
+      <div class="chart-container">
+        <canvas id="totalChart"></canvas>
+      </div>
     </div>
-  </div>
+    <div class="card">
+      <h2>Coverage by Directory</h2>
+      <div class="legend-toggle" id="dirToggle"></div>
+      <div class="chart-container">
+        <canvas id="dirChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section id="section-complexity" class="section">
+    <div class="stats" id="cx-stats">
+      <div class="loading">Loading...</div>
+    </div>
+    <div class="card">
+      <h2>Overall Complexity Over Time</h2>
+      <div class="chart-container">
+        <canvas id="cxTotalChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Complexity by Directory</h2>
+      <div class="legend-toggle" id="cxDirToggle"></div>
+      <div class="chart-container">
+        <canvas id="cxDirChart"></canvas>
+      </div>
+    </div>
+  </section>
 
   <script>
     const COLORS = {
@@ -125,9 +174,32 @@
       '#79c0ff', '#7ee787', '#ffa657', '#ff7b72', '#d29922',
     ];
 
+    const CX_COLORS = {
+      maxComplexity:    '#ff7b72',
+      avgComplexity:    '#f0883e',
+      functionsAbove5:  '#d29922',
+      functionsAbove10: '#d2a8ff',
+    };
+
     function pctColor(v) {
       if (v >= 90) return '#3fb950';
       if (v >= 75) return '#d29922';
+      return '#f85149';
+    }
+
+    function complexityColor(metric, value) {
+      if (metric === 'maxComplexity') {
+        if (value <= 5)  return '#3fb950';
+        if (value <= 10) return '#d29922';
+        return '#f85149';
+      }
+      if (metric === 'avgComplexity') {
+        if (value <= 3) return '#3fb950';
+        if (value <= 6) return '#d29922';
+        return '#f85149';
+      }
+      if (value === 0) return '#3fb950';
+      if (value <= 5)  return '#d29922';
       return '#f85149';
     }
 
@@ -233,7 +305,128 @@
       };
     }
 
-    init();
+    function complexityChartOptions(yLabel) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          x: {
+            type: 'time',
+            time: { unit: 'day', tooltipFormat: 'PPp' },
+            grid: { color: '#21262d' },
+            ticks: { color: '#8b949e' },
+          },
+          y: {
+            grid: { color: '#21262d' },
+            ticks: { color: '#8b949e' },
+            title: { display: true, text: yLabel, color: '#8b949e' },
+          },
+        },
+        plugins: {
+          legend: { labels: { color: '#c9d1d9' } },
+          tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}` } },
+        },
+      };
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.getElementById('section-' + tab).classList.add('active');
+      document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      if (tab === 'complexity') {
+        window._cxTotalChart && window._cxTotalChart.resize();
+        window._cxDirChart   && window._cxDirChart.resize();
+      }
+    }
+
+    async function initComplexity() {
+      let history;
+      try {
+        const res = await fetch('data/complexity-history.json');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        history = await res.json();
+      } catch (e) {
+        document.getElementById('cx-stats').innerHTML = '<div class="no-data">No complexity data yet.</div>';
+        return;
+      }
+
+      if (!Array.isArray(history) || history.length === 0) {
+        document.getElementById('cx-stats').innerHTML = '<div class="no-data">No complexity data yet.</div>';
+        return;
+      }
+
+      const latest = history[history.length - 1];
+      const cxMetrics = ['maxComplexity', 'avgComplexity', 'functionsAbove5', 'functionsAbove10'];
+      const CX_LABELS = {
+        maxComplexity:    'Max Complexity',
+        avgComplexity:    'Avg Complexity',
+        functionsAbove5:  'Functions > 5',
+        functionsAbove10: 'Functions > 10',
+      };
+
+      document.getElementById('cx-stats').innerHTML = cxMetrics.map(m =>
+        `<div class="stat">
+          <div class="stat-value" style="color:${complexityColor(m, latest.total[m])}">${latest.total[m]}</div>
+          <div class="stat-label">${CX_LABELS[m]}</div>
+        </div>`
+      ).join('');
+
+      const timestamps = history.map(h => h.timestamp);
+
+      const cxTotalDatasets = cxMetrics.map(m => ({
+        label: CX_LABELS[m],
+        data: history.map(h => h.total[m]),
+        borderColor: CX_COLORS[m],
+        backgroundColor: CX_COLORS[m] + '22',
+        tension: 0.3,
+        pointRadius: history.length > 30 ? 0 : 3,
+        borderWidth: 2,
+      }));
+
+      window._cxTotalChart = new Chart(document.getElementById('cxTotalChart'), {
+        type: 'line',
+        data: { labels: timestamps, datasets: cxTotalDatasets },
+        options: complexityChartOptions('Complexity'),
+      });
+
+      const allCxDirs = [...new Set(history.flatMap(h => Object.keys(h.directories || {})))].sort();
+      const cxDirDatasets = allCxDirs.map((dir, i) => ({
+        label: dir,
+        data: history.map(h => (h.directories && h.directories[dir]) ? h.directories[dir].avgComplexity : null),
+        borderColor: DIR_COLORS[i % DIR_COLORS.length],
+        backgroundColor: DIR_COLORS[i % DIR_COLORS.length] + '22',
+        tension: 0.3,
+        pointRadius: history.length > 30 ? 0 : 3,
+        borderWidth: 2,
+        spanGaps: true,
+      }));
+
+      window._cxDirChart = new Chart(document.getElementById('cxDirChart'), {
+        type: 'line',
+        data: { labels: timestamps, datasets: cxDirDatasets },
+        options: complexityChartOptions('Avg Complexity'),
+      });
+
+      const cxToggle = document.getElementById('cxDirToggle');
+      allCxDirs.forEach((dir, i) => {
+        const btn = document.createElement('button');
+        btn.textContent = dir;
+        btn.classList.add('active');
+        btn.style.borderLeftColor = DIR_COLORS[i % DIR_COLORS.length];
+        btn.style.borderLeftWidth = '3px';
+        btn.addEventListener('click', () => {
+          const meta = window._cxDirChart.getDatasetMeta(i);
+          meta.hidden = !meta.hidden;
+          btn.classList.toggle('active');
+          window._cxDirChart.update();
+        });
+        cxToggle.appendChild(btn);
+      });
+    }
+
+    Promise.all([init(), initComplexity()]);
   </script>
 </body>
 </html>
