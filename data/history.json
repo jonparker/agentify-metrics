@@ -342,5 +342,48 @@
         "lines": 87.5
       }
     }
+  },
+  {
+    "timestamp": "2026-06-04T13:32:19.202Z",
+    "commit": "48e1a98a9a8b2becbbb2410304e3789e2be7027b",
+    "commitMessage": "Merge pull request #16 from jonparker/claude/ci-npm-403-error-5c0pT",
+    "total": {
+      "statements": 97.05,
+      "branches": 92.59,
+      "functions": 92.1,
+      "lines": 98.07
+    },
+    "directories": {
+      "src/utilities": {
+        "statements": 98.18,
+        "branches": 95.83,
+        "functions": 91.67,
+        "lines": 97.83
+      },
+      "src/resource-accessors": {
+        "statements": 92.86,
+        "branches": 90,
+        "functions": 85.71,
+        "lines": 96
+      },
+      "src/engines": {
+        "statements": 100,
+        "branches": 91.3,
+        "functions": 100,
+        "lines": 100
+      },
+      "src/managers": {
+        "statements": 97.14,
+        "branches": 84.62,
+        "functions": 100,
+        "lines": 100
+      },
+      "src/schemas": {
+        "statements": 88.89,
+        "branches": 100,
+        "functions": 80,
+        "lines": 87.5
+      }
+    }
   }
 ]

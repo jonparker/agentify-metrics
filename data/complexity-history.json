@@ -1,0 +1,45 @@
+[
+  {
+    "timestamp": "2026-06-04T13:32:19.224Z",
+    "commit": "48e1a98a9a8b2becbbb2410304e3789e2be7027b",
+    "commitMessage": "Merge pull request #16 from jonparker/claude/ci-npm-403-error-5c0pT",
+    "total": {
+      "maxComplexity": 8,
+      "avgComplexity": 2.39,
+      "functionsAbove5": 6,
+      "functionsAbove10": 0
+    },
+    "directories": {
+      "src/utilities": {
+        "maxComplexity": 8,
+        "avgComplexity": 2.17,
+        "functionsAbove5": 1,
+        "functionsAbove10": 0
+      },
+      "src/resource-accessors": {
+        "maxComplexity": 6,
+        "avgComplexity": 2,
+        "functionsAbove5": 1,
+        "functionsAbove10": 0
+      },
+      "src/engines": {
+        "maxComplexity": 8,
+        "avgComplexity": 4.8,
+        "functionsAbove5": 3,
+        "functionsAbove10": 0
+      },
+      "src/managers": {
+        "maxComplexity": 3,
+        "avgComplexity": 1.67,
+        "functionsAbove5": 0,
+        "functionsAbove10": 0
+      },
+      "src/schemas": {
+        "maxComplexity": 8,
+        "avgComplexity": 2.4,
+        "functionsAbove5": 1,
+        "functionsAbove10": 0
+      }
+    }
+  }
+]

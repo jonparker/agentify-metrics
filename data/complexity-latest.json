@@ -1,0 +1,214 @@
+{
+  "files": {
+    "src/engines/event-projector.ts": [
+      {
+        "name": "projectState",
+        "complexity": 8,
+        "line": 8
+      },
+      {
+        "name": "projectPlan",
+        "complexity": 6,
+        "line": 51
+      },
+      {
+        "name": "<anonymous>",
+        "complexity": 2,
+        "line": 58
+      },
+      {
+        "name": "<anonymous>",
+        "complexity": 2,
+        "line": 67
+      },
+      {
+        "name": "projectSession",
+        "complexity": 6,
+        "line": 90
+      }
+    ],
+    "src/managers/session-manager.ts": [
+      {
+        "name": "constructor",
+        "complexity": 3,
+        "line": 23
+      },
+      {
+        "name": "startSession",
+        "complexity": 1,
+        "line": 34
+      },
+      {
+        "name": "endSession",
+        "complexity": 3,
+        "line": 56
+      },
+      {
+        "name": "getActiveStore",
+        "complexity": 1,
+        "line": 75
+      },
+      {
+        "name": "getActiveSessionId",
+        "complexity": 1,
+        "line": 82
+      },
+      {
+        "name": "listSessions",
+        "complexity": 2,
+        "line": 89
+      },
+      {
+        "name": "<anonymous>",
+        "complexity": 1,
+        "line": 91
+      },
+      {
+        "name": "loadSession",
+        "complexity": 2,
+        "line": 99
+      },
+      {
+        "name": "getSessionInfo",
+        "complexity": 1,
+        "line": 110
+      }
+    ],
+    "src/resource-accessors/event-store.ts": [
+      {
+        "name": "constructor",
+        "complexity": 3,
+        "line": 17
+      },
+      {
+        "name": "append",
+        "complexity": 1,
+        "line": 30
+      },
+      {
+        "name": "readAll",
+        "complexity": 6,
+        "line": 39
+      },
+      {
+        "name": "<anonymous>",
+        "complexity": 1,
+        "line": 45
+      },
+      {
+        "name": "readFrom",
+        "complexity": 1,
+        "line": 69
+      },
+      {
+        "name": "count",
+        "complexity": 1,
+        "line": 76
+      },
+      {
+        "name": "get filePath",
+        "complexity": 1,
+        "line": 83
+      }
+    ],
+    "src/schemas/commands.ts": [
+      {
+        "name": "createCommand",
+        "complexity": 1,
+        "line": 132
+      }
+    ],
+    "src/schemas/events.ts": [
+      {
+        "name": "createEvent",
+        "complexity": 1,
+        "line": 270
+      },
+      {
+        "name": "isValidEvent",
+        "complexity": 8,
+        "line": 284
+      }
+    ],
+    "src/schemas/read-models.ts": [
+      {
+        "name": "emptyProjectState",
+        "complexity": 1,
+        "line": 18
+      },
+      {
+        "name": "emptyCurrentPlan",
+        "complexity": 1,
+        "line": 31
+      }
+    ],
+    "src/utilities/diff.ts": [
+      {
+        "name": "unifiedDiff",
+        "complexity": 8,
+        "line": 5
+      },
+      {
+        "name": "flushChunk",
+        "complexity": 4,
+        "line": 22
+      }
+    ],
+    "src/utilities/hash.ts": [
+      {
+        "name": "contentHash",
+        "complexity": 1,
+        "line": 3
+      }
+    ],
+    "src/utilities/logger.ts": [
+      {
+        "name": "createLogger",
+        "complexity": 1,
+        "line": 24
+      },
+      {
+        "name": "log",
+        "complexity": 4,
+        "line": 27
+      },
+      {
+        "name": "<anonymous>",
+        "complexity": 1,
+        "line": 44
+      },
+      {
+        "name": "<anonymous>",
+        "complexity": 1,
+        "line": 45
+      },
+      {
+        "name": "<anonymous>",
+        "complexity": 1,
+        "line": 46
+      },
+      {
+        "name": "<anonymous>",
+        "complexity": 1,
+        "line": 47
+      },
+      {
+        "name": "createNullLogger",
+        "complexity": 1,
+        "line": 52
+      },
+      {
+        "name": "noop",
+        "complexity": 1,
+        "line": 53
+      }
+    ],
+    "src/utilities/tokens.ts": [
+      {
+        "name": "estimateTokens",
+        "complexity": 2,
+        "line": 8
+      }
+    ]
+  }
+}
